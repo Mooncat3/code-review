@@ -1,0 +1,203 @@
+.chat-input-area {
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-divider);
+  flex-shrink: 0;
+  background: var(--color-bg);
+  * {
+    user-select: none;
+  }
+}
+
+.chat-input-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  transition: border-color var(--transition);
+}
+.chat-input-form:focus-within {
+  border-color: var(--color-primary);
+}
+
+.chat-input-form__top {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.chat-input-form__textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-text);
+  max-height: 180px;
+  min-height: 24px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.chat-input-form__textarea::placeholder {
+  color: var(--color-text-faint);
+}
+.chat-input-form__textarea::-webkit-scrollbar {
+  display: none;
+}
+
+.chat-input-form__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.action-select {
+  background: var(--color-surface-offset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  transition:
+    border-color var(--transition),
+    color var(--transition);
+}
+.action-select:hover {
+  border-color: var(--color-surface-dynamic);
+  color: var(--color-text);
+}
+.action-select option {
+  background: var(--color-surface-2);
+}
+
+.chat-input-form__hint {
+  flex: 1;
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.send-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #fff;
+  flex-shrink: 0;
+  transition:
+    background var(--transition),
+    opacity var(--transition);
+}
+.send-btn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+.send-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.file-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0 0 var(--space-2);
+}
+
+.file-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-surface-offset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  max-width: 200px;
+}
+
+.file-chip__name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.file-chip__size {
+  color: var(--color-text-faint);
+  flex-shrink: 0;
+}
+
+.file-chip__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-faint);
+  transition:
+    color var(--transition),
+    background var(--transition);
+}
+.file-chip__remove:hover {
+  color: var(--color-error);
+  background: var(--color-surface-dynamic);
+}
+
+.file-error {
+  font-size: var(--text-xs);
+  color: var(--color-error);
+  padding: 0 0 var(--space-2) var(--space-1);
+}
+
+.attach-btn {
+  margin-right: auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  transition:
+    background var(--transition),
+    color var(--transition);
+  flex-shrink: 0;
+}
+.attach-btn:hover:not(:disabled) {
+  background: var(--color-surface-offset);
+  color: var(--color-text);
+}
+.attach-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.attach-btn__count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
