@@ -1,0 +1,237 @@
+stages:
+  - validate
+  - security
+  - ai-review
+
+# ─── Глобальные настройки ──────────────────────────────────────────────────
+default:
+  interruptible: true
+
+variables:
+  MAX_DIFF_SIZE: "30000"
+  CURL_TIMEOUT: "600"
+  CURL_RETRIES: "3"
+  CODE_EXTENSIONS: '\\.(js|ts|tsx|jsx|mjs|cjs|html|htm|css|scss|sass|less|styl|vue|svelte|astro|py|rb|php|java|kt|kts|groovy|cs|fs|fsx|vb|go|rs|swift|dart|c|cpp|cc|cxx|h|hpp|hxx|scala|clj|cljs|ex|exs|erl|hrl|lua|pl|pm|r|jl|hs|lhs|nim|zig|cr|sh|bash|zsh|fish|ps1|psm1|bat|cmd|dockerfile|containerfile|json|jsonc|json5|yaml|yml|toml|ini|cfg|conf|config|xml|xsl|xslt|plist|csv|tsv|env|properties|dotenv|hcl|tf|tfvars|txt|md|mdx|rst|asciidoc|adoc|tex|latex|bib|log|diff|patch|sql|psql|graphql|gql|prisma|proto|mk|cmake|gradle|pom|lock|svg|gitignore|gitattributes|editorconfig|eslintrc|prettierrc|babelrc|browserslistrc)$'
+  LOCK_FILES: 'package-lock\.json|yarn\.lock|pnpm-lock\.yaml|composer\.lock|Gemfile\.lock|poetry\.lock|go\.sum|Cargo\.lock'
+
+.anchors:
+  fetch_diff: &fetch_diff "git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+  gen_diff: &gen_diff "git diff origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME...$CI_COMMIT_SHA > diff.txt"
+  cleanup: &cleanup "rm -f diff.txt diff_code.txt diff_trunc.txt response.json"
+
+# ─── Валидация переменных окружения ─────────────────────────────────────
+validate_env:
+  stage: validate
+  image: alpine:latest
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - |
+      ERRORS=0
+
+      if [ -z "$N8N_WEBHOOK_URL" ]; then
+        echo "ОШИБКА: N8N_WEBHOOK_URL не задан!"
+        ERRORS=$((ERRORS+1))
+      fi
+
+      if [ -z "$N8N_AUTH_TOKEN" ]; then
+        echo "ОШИБКА: N8N_AUTH_TOKEN не задан!"
+        ERRORS=$((ERRORS+1))
+      fi
+
+      # Токен должен быть достаточно длинным
+      TOKEN_LEN=$(echo -n "$N8N_AUTH_TOKEN" | wc -c)
+      if [ "$TOKEN_LEN" -lt 16 ]; then
+        echo "ОШИБКА: N8N_AUTH_TOKEN слишком короткий (< 16 символов)!"
+        ERRORS=$((ERRORS+1))
+      fi
+
+      if [ "$ERRORS" -gt 0 ]; then
+        echo "Обнаружено $ERRORS ошибок конфигурации. Пайплайн остановлен."
+        exit 1
+      fi
+
+      echo "✅ Все переменные окружения прошли проверку."
+
+# ─── Сканирование секретов в diff ───────────────────────────────────────
+scan_secrets:
+  stage: security
+  image: alpine:latest
+  needs: ["validate_env"]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - apk add --no-cache git grep
+    - *fetch_diff
+    - *gen_diff
+    - |
+      echo "🔍 Сканирование на наличие секретов..."
+      FOUND=0
+
+      check_pattern() {
+        LABEL="$1"; PATTERN="$2"
+        if grep -qiE "$PATTERN" diff.txt; then
+          echo "⚠️  Возможный секрет [$LABEL]"
+          FOUND=$((FOUND+1))
+        fi
+      }
+
+      check_pattern "Пароль в коде"        "password\s*=\s*['\"][^'\"]{4,}"
+      check_pattern "Секрет в коде"        "secret\s*=\s*['\"][^'\"]{4,}"
+      check_pattern "API-ключ в коде"      "api_key\s*=\s*['\"][^'\"]{4,}"
+      check_pattern "Токен в коде"         "token\s*=\s*['\"][^'\"]{4,}"
+      check_pattern "Приватный ключ"       "BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE KEY"
+      check_pattern "AWS Access Key"       "AKIA[0-9A-Z]{16}"
+      check_pattern "GitHub Token"         "ghp_[0-9a-zA-Z]{36}"
+      check_pattern "GitLab PAT"           "glpat-[0-9a-zA-Z\-]{20}"
+      check_pattern "Google API Key"       "AIza[0-9A-Za-z\-_]{35}"
+
+      if [ "$FOUND" -gt 0 ]; then
+        echo ""
+        echo "ОШИБКА: Обнаружены потенциальные секреты ($FOUND шт.) — удалите их перед MR."
+        exit 1
+      fi
+      echo "✅ Секреты не обнаружены."
+  after_script:
+    - *cleanup
+
+# ─── Проверка размера diff ───────────────────────────────────────────────
+check_diff_size:
+  stage: security
+  image: alpine:latest
+  needs: ["validate_env"]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - apk add --no-cache git
+    - *fetch_diff
+    - *gen_diff
+    - |
+      DIFF_CHARS=$(awk -v code_ext="$CODE_EXTENSIONS" -v lock="$LOCK_FILES" '
+      /^diff --git/ {
+        filename = $0
+        skip = (filename ~ lock) || !(filename ~ code_ext)
+      }
+      !skip && /^[+-]/ && !/^(---|\+\+\+)/ { chars += length($0) }
+      END { print chars+0 }
+      ' diff.txt)
+
+      DIFF_FILES=$(grep -c '^diff --git' diff.txt || true)
+      echo "📊 Размер MR: $DIFF_FILES файлов, $DIFF_CHARS символов (только кодовые файлы)"
+
+      if [ "$DIFF_CHARS" -gt "$MAX_DIFF_SIZE" ]; then
+        echo "⚠️ ПРЕДУПРЕЖДЕНИЕ: MR превышает $MAX_DIFF_SIZE символов ($DIFF_CHARS). AI-ревью получит обрезанный diff."
+      fi
+
+      if [ "$DIFF_CHARS" -gt $((MAX_DIFF_SIZE * 3)) ]; then
+        echo "ОШИБКА: MR превышает $((MAX_DIFF_SIZE * 3)) символов. Разбейте изменения на части."
+        exit 1
+      fi
+
+      echo "✅ Размер diff в допустимых пределах."
+  after_script:
+    - *cleanup
+
+# ─── AI-ревью кода ──────────────────────────────────────────────────────
+ai_code_review:
+  stage: ai-review
+  image: alpine:latest
+  timeout: 10 minutes
+  needs: ["scan_secrets", "check_diff_size"]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  before_script:
+    - apk add --no-cache curl git jq
+    - *fetch_diff
+    - *gen_diff
+  script:
+    - |
+      echo "🤖 Начинаем AI-ревью для MR !${CI_MERGE_REQUEST_IID}..."
+
+      if [ ! -s diff.txt ]; then
+        echo "Нет изменений для анализа."
+        exit 0
+      fi
+
+      awk -v code_ext="$CODE_EXTENSIONS" -v lock="$LOCK_FILES" '
+      /^diff --git/ {
+        filename = $0
+        skip = (filename ~ lock) || !(filename ~ code_ext)
+        if (!skip) print
+        next
+      }
+      !skip { print }
+      ' diff.txt > diff_code.txt
+
+      if [ ! -s diff_code.txt ]; then
+        echo "Нет изменений в кодовых файлах для анализа."
+        exit 0
+      fi
+
+      head -c "${MAX_DIFF_SIZE}" diff_code.txt > diff_trunc.txt
+
+      DIFF_CONTENT=$(cat diff_trunc.txt)
+      SALT=$(cat /proc/sys/kernel/random/uuid | tr -d '-')
+
+      PAYLOAD=$(jq -n \
+        --arg mr_id          "$CI_MERGE_REQUEST_IID" \
+        --arg project_id     "$CI_PROJECT_ID" \
+        --arg commit_sha     "$CI_COMMIT_SHA" \
+        --arg source_branch  "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" \
+        --arg diff           "$DIFF_CONTENT" \
+        --arg session_id     "gitlab_mr_${CI_PROJECT_ID}_${CI_MERGE_REQUEST_IID}_${SALT}" \
+        '{
+          project_id:  $project_id,
+          mr_id:       $mr_id,
+          commit_sha:  $commit_sha,
+          branch:      $source_branch,
+          diff:        $diff,
+          sessionId:   $session_id,
+          action:      "review"
+        }')
+
+      HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" \
+        --max-time "$CURL_TIMEOUT" \
+        --retry "$CURL_RETRIES" \
+        --retry-delay 5 \
+        --retry-connrefused \
+        -X POST "$N8N_WEBHOOK_URL" \
+        -H "Authorization: Bearer $N8N_AUTH_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "$PAYLOAD")
+
+      # Проверка HTTP-кода ответа
+      if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+        echo "ОШИБКА: Сервер вернул HTTP $HTTP_CODE"
+        cat response.json
+        exit 1
+      fi
+
+      echo "✅ Ответ получен (HTTP $HTTP_CODE)"
+
+      # Валидация JSON в ответе
+      if ! jq empty response.json 2>/dev/null; then
+        echo "ОШИБКА: Ответ от n8n не является валидным JSON!"
+        exit 1
+      fi
+
+      jq -r '.data?.content // .[0]?.data?.content // empty' response.json > ai-review-report.md || true
+      STATUS=$(jq -r '.pipeline_status // .[0]?.pipeline_status // empty' response.json)
+
+      echo "Статус проверки от ИИ: $STATUS"
+      if [ "$STATUS" = "FAILED" ]; then
+        echo "❌ ИИ обнаружил критические ошибки!"
+        exit 1
+      fi
+
+      echo "✅ AI-ревью успешно завершено."
+
+  after_script:
+    - *cleanup
+
+  artifacts:
+    name: "ai-review-report-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - ai-review-report.md
+    expire_in: 1 week
+    when: always
