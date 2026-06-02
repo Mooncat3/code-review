@@ -23,7 +23,7 @@ try:
     
     # Отправляем POST-запрос с данными в формате JSON
     response = requests.post(WEBHOOK_URL, json=payload,
-        headers={"Authorization": "Bearer a10bac1f9fcca4fc2a5da4e617134c05"})
+        headers={"Authorization": "Bearer your_auth_token"})
     response.raise_for_status()  # Проверяем, нет ли HTTP-ошибок (например, 404 или 500)
     
     print("\n✅ Успешно! Статус код:", response.status_code)
