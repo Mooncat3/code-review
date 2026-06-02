@@ -10,8 +10,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1024,
-        272
+        768,
+        368
       ],
       "id": "75fb1166-3753-43cd-8b9b-3b001d36d411",
       "name": "Respond to Webhook"
@@ -70,7 +70,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        160,
+        64,
         192
       ],
       "id": "04f48f3a-efa9-4c25-8339-ec9233e8caa1",
@@ -84,7 +84,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        160,
+        64,
         368
       ],
       "id": "5b984d0e-3afd-4c63-9ab2-bc7c4d084888",
@@ -105,8 +105,8 @@
       "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
       "typeVersion": 1.3,
       "position": [
-        240,
-        672
+        304,
+        560
       ],
       "id": "deb53673-e4e4-4e47-8f12-df3d6e7f6b49",
       "name": "Postgres Chat Memory",
@@ -125,7 +125,7 @@
       "type": "@n8n/n8n-nodes-langchain.memoryManager",
       "typeVersion": 1.1,
       "position": [
-        -608,
+        -688,
         96
       ],
       "id": "99809b26-6a9e-4775-bac2-c22b2995f6ef",
@@ -141,7 +141,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        -112,
+        -192,
         96
       ],
       "id": "01b45499-922f-4458-a8f6-ab5cd33c4de3",
@@ -154,7 +154,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        464,
+        352,
         192
       ],
       "id": "27739f85-b9c4-4ca7-b91c-cef64b274cd9",
@@ -167,7 +167,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -272,
+        -320,
         352
       ],
       "id": "59ca4674-05cd-41ac-9bf8-d88c097fa0e4",
@@ -187,8 +187,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1168,
-        32
+        1056,
+        96
       ],
       "id": "13878d98-da3c-45c9-84e0-5910164bab40",
       "name": "Gitlab status",
@@ -219,8 +219,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1168,
-        -128
+        1056,
+        -48
       ],
       "id": "c9c77e4d-7748-4eb8-a958-b31ed509a872",
       "name": "Gitlab notes",
@@ -244,8 +244,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1168,
-        -288
+        1280,
+        176
       ],
       "id": "c406344b-8aa7-4325-8047-d4db9943379e",
       "name": "Respond to Webhook2"
@@ -258,8 +258,8 @@
       "type": "@n8n/n8n-nodes-langchain.memoryManager",
       "typeVersion": 1.1,
       "position": [
-        1280,
-        176
+        960,
+        368
       ],
       "id": "7287da81-ce58-467b-8f7e-da99e12bbc56",
       "name": "Удаление истории у CI/CD",
@@ -276,7 +276,7 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -1120,
+        -1040,
         336
       ],
       "id": "53d3e0a9-d8a4-4035-9833-8c5f7fff5032",
@@ -299,8 +299,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -1232,
-        720
+        -1040,
+        560
       ],
       "id": "f8cfb2b5-90d0-4188-8959-24c378c1178f",
       "name": "Chat history",
@@ -323,8 +323,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -560,
-        720
+        -448,
+        560
       ],
       "id": "9b991a22-b855-41dd-b9d6-a9363cdfc82a",
       "name": "Execute a SQL query",
@@ -343,8 +343,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -352,
-        720
+        -240,
+        560
       ],
       "id": "c4eb8999-84ff-4f4c-a2b4-2042d8e80542",
       "name": "Агрегация массива"
@@ -358,8 +358,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        -144,
-        720
+        -32,
+        560
       ],
       "id": "cfd7d20f-cf2d-4619-994d-a35d78105f14",
       "name": "Respond to Webhook3"
@@ -371,8 +371,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -784,
-        720
+        -672,
+        560
       ],
       "id": "6dcdd73e-033c-4b1c-b085-436b872b202e",
       "name": "Подготовка параметров"
@@ -388,7 +388,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -464,
+        -496,
         352
       ],
       "id": "99ec5306-112e-421b-ac34-0cdeb40dd45f",
@@ -439,7 +439,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        864,
+        672,
         192
       ],
       "id": "3d880c94-f7f3-4860-9ffb-e8541ee1359d",
@@ -454,7 +454,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -656,
+        -672,
         352
       ],
       "id": "e0fbd677-3778-497b-ae70-cef192730fdd",
@@ -477,7 +477,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -64,
+        -144,
         272
       ],
       "id": "9059b0cb-5031-4a16-b018-f14952271125",
@@ -500,7 +500,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        656,
+        512,
         192
       ],
       "id": "6ef4d730-b2ca-4f14-8af4-7c086e23625f",
@@ -521,8 +521,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -1024,
-        720
+        -864,
+        560
       ],
       "id": "66d443f2-0080-4d46-8573-d2dbe6f788c3",
       "name": "Создание таблицы1",
@@ -544,7 +544,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -304,
+        -384,
         96
       ],
       "id": "dea00c9f-0860-4850-94a2-a307888fd51b",
@@ -567,8 +567,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1600,
-        176
+        1280,
+        368
       ],
       "id": "ecb19a25-0dcf-425b-adc0-bafbe6235ad4",
       "name": "Удаление метаданных1",
@@ -865,7 +865,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "c1b37dee-abb6-4fc9-b797-c187a4344fc1",
+  "versionId": "1a3e77b4-c990-4724-a5c6-ff21f6b3c094",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce"

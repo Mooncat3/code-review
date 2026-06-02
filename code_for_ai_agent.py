@@ -1,49 +1,58 @@
-import os
 import sys
-import time
 
-def process_data(data, results=[]):
-    """
-    Обрабатывает список чисел и добавляет их в результаты.
-    """
-    for item in data:
-        # Неэффективная конкатенация строк
-        msg = ""
-        msg += "Обработка элемента: "
-        msg += str(item)
-        print(msg)
-        
-        try:
-            # Риск деления на ноль, если item == 0
-            res = 100 / item
-            results.append(res)
-        except Exception as e:
-            # Слишком широкое перехватывание исключений (отсутствие логирования самой ошибки)
-            print("Произошла ошибка")
-            
-    return results
-
-def calculate_stats(numbers):
-    total = 0
-    for n in numbers:
-        total = total + n
+def main():
+    input_data = sys.stdin.read().split()
+    idx = 0
     
-    # Ошибка деления на ноль, если передан пустой список
-    average = total / len(numbers)
-    return {"total": total, "average": average}
+    n = int(input_data[idx]); idx += 1  # количество городов
+    m = int(input_data[idx]); idx += 1  # количество дорог
+    
+    edges = []
+    for i in range(m):
+        a = int(input_data[idx]);     idx += 1
+        b = int(input_data[idx]);     idx += 1
+        w = int(input_data[idx]);     idx += 1
+        edges.append((w, a, b))
+    
+    # Сортировка рёбер по стоимости (по возрастанию)
+    edges.sort()
+    
+    # --- Union-Find (система непересекающихся множеств) ---
+    parent = list(range(n + 1))
+    rank   = [0] * (n + 1)
+    
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]  # сжатие пути
+            x = parent[x]
+        return x
+    
+    def union(x, y):
+        rx, ry = find(x), find(y)
+        if rx == ry:
+            return False  # уже в одном компоненте → цикл
+        if rank[rx] < rank[ry]:
+            rx, ry = ry, rx
+        parent[ry] = rx
+        if rank[rx] == rank[ry]:
+            rank[rx] += 1
+        return True
+    
+    # --- Алгоритм Краскала ---
+    total_cost = 0
+    mst_edges  = []
+    
+    for w, a, b in edges:
+        if union(a, b):
+            total_cost += w
+            mst_edges.append((a, b))
+            if len(mst_edges) == n - 1:
+                break  # MST готово (n-1 рёбер)
+    
+    # --- Вывод результата ---
+    print(total_cost)
+    for a, b in mst_edges:
+        print(a, b)
 
 if __name__ == "__main__":
-    my_data = [10, 5, 0, 20]
-    
-    # Тест 1
-    out1 = process_data(my_data)
-    print("Результат 1:", out1)
-    
-    # Тест 2
-    # Из-за изменяемого значения по умолчанию (results=[]) сюда попадут данные из out1
-    out2 = process_data([2, 4])
-    print("Результат 2:", out2)
-    
-    # Тест 3
-    stats = calculate_stats(my_data)
-    print("Статистика:", stats)
+    main()
